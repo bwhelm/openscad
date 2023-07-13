@@ -30,9 +30,6 @@ elbowStopper = 2;               // extra diameter of ring used as stopper on hos
 screenThick = 2;                // thickness of screen
 screenHoleSize = 2;             // size of holes in screen
 
-screwLength = 0;                // length of screw section (0 omits)
-screwPitch = 3.0;               // distance between threads of screw
-
 // ===========================================================================
 // OTHER
 // ===========================================================================
@@ -49,13 +46,12 @@ d2 = hosePipeOutsideDiam - thickness;
 largerDiam = d1 >= d2 ? d1 : d2;               // larger of the two diameters
 smallerDiam = d1 < d2 ? d1 : d2;               // smaller of the two diameters
 elbowOffset = valvePipe == false ? 0 : largerDiam/2 + elbowFudge + elbowRadius;  // offset on y-axis to accommodate elbow joint
-screwDiameter = hosePipeOutsideDiam + 3;       // need to make it thicker to attach to pipe better
 
 // ===========================================================================
 // MODULES
 // ===========================================================================
 
-module elbow(dia1, dia2){
+module elbow(dia1 = d1, dia2 = d2){
     // create elbow of graduallvalvePipeLength changing diameters
     largerDiam = dia1 >= dia2 ? dia1 : dia2;
     smallerDiam = dia1 < dia2 ? dia1 : dia2;
@@ -67,7 +63,7 @@ module elbow(dia1, dia2){
                     circle(d = largerDiam + thickness);
             }
             // Add stopper ring, onlvalvePipeLength if needed
-            if(d2 > largerDiam - 4){
+            if(dia2 > largerDiam - 4){
                 translate([elbowOffset, elbowFudge/2, 0])
                     rotate([90, 0, 0])
                         ring(largerDiam + thickness + 4,
@@ -82,7 +78,8 @@ module elbow(dia1, dia2){
                     translate([elbowOffset, 0, 0])
                         circle(d = largerDiam - thickness - (d2 - d1)*i/elbowSteps);
         }
-        rotate_extrude(angle = 90) {
+        // make sure inside is cleaned out to minimum diameter
+        rotate([0, 0, -.5]) rotate_extrude(angle = 91) {
             translate([elbowOffset, 0, 0]) circle(d = smallerDiam);
         }
     }
@@ -107,7 +104,37 @@ module screen(diameter, width){
     }
 }
 
-module complete(){
+module hosePipe(elbow = elbow){
+    adjustx = hosePipeOutsideDiam + d1/2;
+    adjusty = screenThick/2 + elbowOffset + d1/2 + thickness/2;
+    translate([elbowOffset + adjustx, adjusty, 0]){
+        rotate([90, 0, 0]){
+            union(){
+                // Add screen
+                fudge = elbow==false ? elbowFudge/2 : 0;
+                translate([0, 0, screenThick/2 - fudge]) screen(d2, screenThick);
+                // Add pipe to be inserted into hose
+                union(){
+                    translate([0, 0, hosePipeLength/2])
+                        ring(d2+thickness, d2, hosePipeLength);
+                    translate([0, 0, hosePipeLength/2])
+                        ring(hosePipeRingDiam, hosePipeOutsideDiam, hosePipeRingWidth);
+                    translate([0, 0, hosePipeLength - hosePipeRingWidth / 2])
+                        ring(hosePipeRingDiam, hosePipeOutsideDiam, hosePipeRingWidth);
+                }
+                // Add stopper ring, onlvalvePipeLength if needed
+                if(elbow == false){
+                    difference(){
+                        cylinder(h=elbowFudge, d=largerDiam + thickness, $fn=8, center=true);
+                        cylinder(h=elbowFudge + 1, d=d2, center=true);
+                    }
+                }
+            }
+        }
+    }
+}
+
+module buildComplete(valvePipe = valvePipe, elbow = elbow, hosePipe = hosePipe){
     rotate([-90, 0, 0]) translate([0, -elbowOffset-d1/2-thickness/2, 0])
         union() {
 
@@ -130,67 +157,37 @@ module complete(){
                 }
 
                 // elbow joint
-                if(elbow == true){
-                    elbow(d1, d2);
-                }
-
-                translate([elbowOffset, 0, 0]){
-                    rotate([90, 0, 0]){
-
-                        // Add inside screw section
-                        if(screwLength > 0){
-                            translate([0, 0, screwLength/2])
-                                difference(){
-                                    threaded_rod(d=screwDiameter,
-                                                 height=screwLength,
-                                                 pitch=screwPitch);
-                                    cylinder(h=screwLength + 1, d=d2, center=true);
-                                }
-                        }
-                    }
-                }
+                if(elbow == true) elbow(d1, d2);
 
             }
 
             // hosePipe -- to be inserted into hose
-            if(hosePipe == true){
-                adjustx = screwLength == 0 ? 0 : hosePipeOutsideDiam + d1/2;
-                adjusty = screwLength == 0 ? 0 : screenThick/2 + elbowOffset + d1/2 + thickness/2;
-                translate([elbowOffset + adjustx, adjusty, 0]){
-                    rotate([90, 0, 0]){
-                        union(){
-                            // outside screw FIXME: need to add connection to elbow!
-                            if(screwLength > 0){
-                                translate([0, 0, screenThick/2 + screwLength/2])
-                                    threaded_nut(nutwidth=hosePipeOutsideDiam + 8,
-                                                 id=screwDiameter+.5,
-                                                 h=screwLength,
-                                                 pitch=2.5,
-                                                 bevel=false);
-                            }
-                            // Add screen
-                            translate([0, 0, screwLength + screenThick/2]) screen(d2, screenThick);
-                            // Add pipe to be inserted into hose
-                            union(){
-                                translate([0, 0, hosePipeLength/2 + screwLength])
-                                    ring(d2+thickness, d2, hosePipeLength);
-                                translate([0, 0, hosePipeLength/2 + screwLength])
-                                    ring(hosePipeRingDiam, hosePipeOutsideDiam, hosePipeRingWidth);
-                                translate([0, 0, hosePipeLength + screwLength - hosePipeRingWidth / 2])
-                                    ring(hosePipeRingDiam, hosePipeOutsideDiam, hosePipeRingWidth);
-                            }
-                        }
-                    }
+            if(hosePipe == true)
+                translate([-2*d2, -hosePipeLength+.75, 0]){
+                    hosePipe();
                 }
-            }
-
         }
+
 }
 
-complete();
+module buildArray(num = 4, xspace = 38.5, yspace = 24){
+    for(i = [0 : 1 : sqrt(num) - 1]){
+        for(j = [0 : 1 : sqrt(num) - 1]){
+            translate([i*xspace, j*yspace, 0]){
+                buildComplete(valvePipe = valvePipe, elbow = elbow, hosePipe = hosePipe);
+            }
+        }
+    }
+    translate([-20, 50, 0])
+    for(i = [0 : 1 : sqrt(num) - 1]){
+        for(j = [0 : 1 : sqrt(num) - 1]){
+            translate([i*yspace, j*yspace, hosePipeLength+.75]){
+                rotate([-90, 0, 0]) hosePipe(elbow = false);
+            }
+        }
+    }
+}
 
-/* // the pipe */
-/* rotate([0, 0, 90]) */
-/* translate([-valvePipeLength/2 - screwLength, elbowOffset, 0]){ */
-/*     rotate([0, 90, 0]) ring(d1 + thickness, d1, valvePipeLength); */
-/* } */
+/* buildArray(); */
+
+buildComplete();

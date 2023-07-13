@@ -134,8 +134,8 @@ difference(){
     translate([0, (rackHeight - radiushole + baseThickness)/2, z / 4 + radiushole]) {
         hull(){
             rotate([0, 90, 0]){
-                translate([0, 0, 0]) cylinder(h=baseThickness*4, r=radiushole);
-                translate([-z/4 - radiushole/2, 0, 0]) cylinder(h=baseThickness*4, r=radiushole);
+                translate([0, 0, 0]) cylinder(h=baseThickness*3, r=radiushole);
+                translate([-z/4 - radiushole/2, 0, 0]) cylinder(h=baseThickness*3, r=radiushole);
             }
         }
     }

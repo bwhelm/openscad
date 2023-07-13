@@ -24,7 +24,7 @@ standoff = true;      // True to print standoffs on lid top
 // ===========================================================================
 
 thickness = 1.5;      // Wall thickness
-holesize = 1;         // Size of holes
+holesize = 1.2;         // Size of holes
 intake_radius = 10;   // radius of water intake
 intake_height = 15;   // height of water intake
 offset = 3;           // Amount of offset for standoffs
@@ -91,18 +91,20 @@ module standoff(){
     }
 }
 
-module holes(width = holesize, height = 35){
+module holes(width = holesize, height = thickness+.1){
     // drain holes in main part of lid
-    intersection(){
-        difference(){
-            cylinder(r = d/2 - thickness*4, h = height + 1, center=true);
-            cylinder(r = intake_radius + 2*thickness, h=height + 1, center=true);
-        }
-        for(i = [-d/2 : width * 2 : d/2]){
-            for(j = [-d/2 : width * 2 : d/2]){
-                translate([i, j, 0]){
-                    /* cube([width, width, height], center=true); */
-                    cylinder(d=width, h=height, center=true, $fs=0.6);
+    translate([0, 0, thread_length + thickness/2]){
+        intersection(){
+            difference(){
+                cylinder(r = d/2 - thickness*4, h = height + 1, center=true);
+                cylinder(r = intake_radius + 2*thickness, h=height + 1, center=true);
+            }
+            for(i = [-d/2 : width * 2 : d/2]){
+                for(j = [-d/2 : width * 2 : d/2]){
+                    translate([i, j, 0]){
+                        /* cube([width, width, height], center=true); */
+                        cylinder(d=width, h=height, center=true, $fs=0.6);
+                    }
                 }
             }
         }
@@ -124,18 +126,18 @@ module intake(radius = intake_radius, height = intake_height, thickness = thickn
             }
         }
         union(){
-            translate([0, 0, z + thickness * 2]) for(i = [0 : 10 : 179]){
-                rotate([0, 0, i]) cube([height*2, holesize*.85, height+thickness*2], center=true);
+            translate([0, 0, z + thickness * 2]) for(i = [0 : 15 : 179]){
+                rotate([0, 0, i]) cube([intake_radius*2+thickness, holesize*.85, height+thickness*2], center=true);
             }
             intersection(){
                 for(i = [-radius + thickness : 2*holesize : radius - thickness]){
                     for(j = [-radius + thickness : 2*holesize : radius - thickness]){
-                        translate([i, j, 0])
+                        translate([i, j, radius/2])
                             /* cube([holesize, holesize, height*2], center=true); */
-                            cylinder(d=holesize, h=height*2, center=true, $fs=0.6);
+                            cylinder(d=holesize, h=radius, center=true, $fn=8);
                     }
                 }
-                cylinder(r=radius - thickness, h=height * 2);
+                cylinder(r=radius - thickness-1, h=radius);
             }
         }
     }
