@@ -44,7 +44,6 @@ thickness = pipeThickness * 2;                 // double it since everything is 
 d1 = valvePipe == false ? 0 : valvePipeInsideDiam; // make be 0 if not printing valvePipe
 d2 = hosePipeOutsideDiam - thickness;
 largerDiam = d1 >= d2 ? d1 : d2;               // larger of the two diameters
-smallerDiam = d1 < d2 ? d1 : d2;               // smaller of the two diameters
 elbowOffset = valvePipe == false ? 0 : largerDiam/2 + elbowFudge + elbowRadius;  // offset on y-axis to accommodate elbow joint
 
 // ===========================================================================
@@ -125,7 +124,7 @@ module hosePipe(elbow = elbow){
                 // Add stopper ring, onlvalvePipeLength if needed
                 if(elbow == false){
                     difference(){
-                        cylinder(h=elbowFudge, d=largerDiam + thickness, $fn=8, center=true);
+                        cylinder(h=elbowFudge, d=largerDiam + thickness, $fn=6, center=true);
                         cylinder(h=elbowFudge + 1, d=d2, center=true);
                     }
                 }
@@ -174,7 +173,7 @@ module buildArray(num = 4, xspace = 38.5, yspace = 24){
     for(i = [0 : 1 : sqrt(num) - 1]){
         for(j = [0 : 1 : sqrt(num) - 1]){
             translate([i*xspace, j*yspace, 0]){
-                buildComplete(valvePipe = valvePipe, elbow = elbow, hosePipe = hosePipe);
+                buildComplete(valvePipe = true, elbow = true, hosePipe = true);
             }
         }
     }
