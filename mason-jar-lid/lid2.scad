@@ -5,7 +5,7 @@ $fn= $preview ? 32 : 128;
 // ===========================================================================
 
 lidDiam = 91;           // a bit bigger than 29.4 (measured circum) / pi
-lidDepth = 17;          // height of lid receptacle
+lidDepth = 19;          // height of lid receptacle
 glassWidth = 7.5;       // width of glass in jar
 thickness = 2;          // thickness of stand
 standHeight = 5;        // height of receptacle off ground

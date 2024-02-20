@@ -5,15 +5,15 @@ $fn= $preview ? 32 : 96;        // render more accurately than preview
 // =============================
 height = 125;                   // total height of model
 width = 70;                     // z-dimension of initial block
-baseThickness = 8;              // thickness of main
+baseThickness = 7.5;            // thickness of main
 backAngle = 22.5;               // angle of back off vertical
 frontAngle = 40;                // angle at front off vertical
 rackHeight = 45;                // height of bottom of rack
-rackWidth = 13;                 // width of rack
-rackThickness = 5;              // thickness of rack
+rackWidth = 14;                 // width of rack
+rackThickness = 4.5;            // thickness of rack
 braceHeight = 12;               // height of supporting brace at apex
 washerRadius = 20;              // radius of washer used for weight
-washerDepth = 6;                // total thickness of washers
+washerDepth = 6.5;              // total thickness of washers
 washerFromFront = 5;            // distance of washer from front of stand
 
 // =============================
@@ -88,6 +88,18 @@ difference(){
             translate([x, 0, 0]) sphere(baseThickness/2);
             translate([x, 0, z]) sphere(baseThickness/2);
             translate([0, 0, z]) sphere(baseThickness/2);
+        }
+
+        // Bottom triangle brace
+        hull(){
+            translate([0, 0, 0])               sphere(baseThickness/2);
+            translate([0, 0, z])               sphere(baseThickness/2);
+            translate([braceHeightBase, 0, 0]) sphere(baseThickness/2);
+            translate([braceHeightBase, 0, z]) sphere(baseThickness/2);
+            translate([braceHeightBase*sin(backAngle), braceHeightBase*cos(backAngle), 0])
+                sphere(baseThickness/2);
+            translate([braceHeightBase*sin(backAngle), braceHeightBase*cos(backAngle), z])
+                sphere(baseThickness/2);
         }
 
         // Rack
